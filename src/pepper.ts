@@ -21,6 +21,7 @@ import {
   ClaimStartBlockChanged,
   Claimed,
   ClaimedAggregated,
+  ClaimedAggregatedPerDay,
   EpochLengthChanged,
   MinimumCHZStakedAmountChanged,
   OwnershipTransferred,
@@ -90,6 +91,13 @@ export function handleClaimed(event: ClaimedEvent): void {
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
 
+  const timestamp = event.block.timestamp.toI64() * 1000
+  const date = new Date(timestamp)
+
+  const dateStr = date.getUTCFullYear().toString() +
+    (date.getUTCMonth() + 1).toString().padStart(2, '0') +
+    date.getUTCDate().toString().padStart(2, '0')
+
   entity.save()
 
   // Update aggregate
@@ -103,7 +111,22 @@ export function handleClaimed(event: ClaimedEvent): void {
   aggregate.totalMintPepper = aggregate.totalMintPepper.plus(event.params.amountStakingPool)
   aggregate.totalClaims = aggregate.totalClaims.plus(BigInt.fromI32(1))
   aggregate.save()
+
+  let aggregatePerDay = ClaimedAggregatedPerDay.load(dateStr)
+  if (!aggregatePerDay) {
+    aggregatePerDay = new ClaimedAggregatedPerDay(dateStr)
+    aggregatePerDay.totalMintPepper = BigInt.fromI32(0)
+    aggregatePerDay.totalClaims = BigInt.fromI32(0)
+  }
+
+  aggregatePerDay.totalMintPepper = aggregate.totalMintPepper.plus(event.params.amountStaking)
+  aggregatePerDay.totalMintPepper = aggregate.totalMintPepper.plus(event.params.amountStakingPool)
+  aggregatePerDay.totalClaims = aggregate.totalClaims.plus(BigInt.fromI32(1))
+
+  aggregatePerDay.save()
 }
+
+
 
 export function handleEpochLengthChanged(event: EpochLengthChangedEvent): void {
   let entity = new EpochLengthChanged(

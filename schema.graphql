@@ -40,6 +40,12 @@ type ClaimedAggregated @entity {
   totalClaims: BigInt!
 }
 
+type ClaimedAggregatedPerDay @entity {
+  id: String!
+  totalMintPepper: BigInt!
+  totalClaims: BigInt!
+}
+
 type EpochLengthChanged @entity(immutable: true) {
   id: Bytes!
   epochLength: Int! # uint16
