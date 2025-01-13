@@ -1,0 +1,7 @@
+query {
+  claimedAggregatedPerDays(orderBy: id) {
+    id
+    totalMintPepper
+    totalClaims
+  }
+}
