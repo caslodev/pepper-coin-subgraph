@@ -34,6 +34,12 @@ type Claimed @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type ClaimedAggregated @entity {
+  id: String!
+  totalMintPepper: BigInt!
+  totalClaims: BigInt!
+}
+
 type EpochLengthChanged @entity(immutable: true) {
   id: Bytes!
   epochLength: Int! # uint16

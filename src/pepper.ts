@@ -1,3 +1,4 @@
+import { BigInt } from "@graphprotocol/graph-ts"
 import {
   Approval as ApprovalEvent,
   ClaimEnabledStatusChanged as ClaimEnabledStatusChangedEvent,
@@ -19,6 +20,7 @@ import {
   ClaimEnabledStatusChanged,
   ClaimStartBlockChanged,
   Claimed,
+  ClaimedAggregated,
   EpochLengthChanged,
   MinimumCHZStakedAmountChanged,
   OwnershipTransferred,
@@ -89,6 +91,18 @@ export function handleClaimed(event: ClaimedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  // Update aggregate
+  let aggregate = ClaimedAggregated.load("total")
+  if (!aggregate) {
+    aggregate = new ClaimedAggregated("total")
+    aggregate.totalMintPepper = BigInt.fromI32(0)
+    aggregate.totalClaims = BigInt.fromI32(0)
+  }
+  aggregate.totalMintPepper = aggregate.totalMintPepper.plus(event.params.amountStaking)
+  aggregate.totalMintPepper = aggregate.totalMintPepper.plus(event.params.amountStakingPool)
+  aggregate.totalClaims = aggregate.totalClaims.plus(BigInt.fromI32(1))
+  aggregate.save()
 }
 
 export function handleEpochLengthChanged(event: EpochLengthChangedEvent): void {
